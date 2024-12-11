@@ -1,74 +1,117 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { ImageBackground, Pressable, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import axios from 'axios';
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+const bg = require('@/assets/images/bg.jpg');
+
+export default function Index() {
+    const [quote, setQuote] = useState<string | undefined>('Get Random Quotes!');
+    const [author, setAuthor] = useState<string | undefined>('');
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const fetchQuote = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('https://node-quotes-api.onrender.com/api/quote'); // Example API
+            const data = await response.data;
+            setQuote(data.text);
+            setAuthor(`By ${data.author}`);
+        } catch (error) {
+            setQuote('Failed to fetch quote. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <ImageBackground source={bg} style={styles.image}>
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    <Text style={styles.title}>Welcome</Text>
+                    <Text style={styles.subtitle}>Check out the quotes below</Text>
+                    <View style={styles.quotesContainer}>
+                        {loading ? (
+                            <ActivityIndicator size="large" color="#FFD700" />
+                        ) : (
+                            <>
+                                <Text style={styles.quoteText}>{quote}</Text>
+                                <Text style={styles.authorText}>{author}</Text>
+                            </>
+                        )}
+                        <Pressable style={styles.button} onPress={fetchQuote}>
+                            <Text style={styles.buttonText}>Load Quote</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+        </ImageBackground>
+    );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    image: {
+        flex: 1,
+        resizeMode: 'cover', // Ensures the image maintains its aspect ratio
+        justifyContent: 'center',
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)', // Adds a translucent overlay for better text visibility
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    container: {
+        alignItems: 'center',
+        padding: 20,
+        width: '90%',
+        borderRadius: 10,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFD700', // Gold color for a welcoming feel
+        marginBottom: 10,
+    },
+    subtitle: {
+        fontSize: 18,
+        color: '#FFFFFF',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    quotesContainer: {
+        width: '95%',
+        marginTop: 20,
+        padding: 15,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    quoteText: {
+        fontSize: 18,
+        color: '#FFFFFF',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    authorText:{
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.61)',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    button: {
+        marginTop: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 20,
+        width: '50%',
+        alignItems: 'center',
+        borderRadius: 5,
+        backgroundColor: '#FFD700', // Gold color for call-to-action
+    },
+    buttonText: {
+        fontSize: 16,
+        color: '#000000', // Black text for contrast
+        fontWeight: 'bold',
+    },
 });
